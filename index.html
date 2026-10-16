@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calorie Tracker BD</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="logo">&#127869;&#65039;</span><h1 data-i18n="app_title">Calorie Tracker BD</h1></div>
+  <button id="langBtn" class="lang-btn" type="button">&#2476;&#2494;&#2434;&#2482;&#2494;</button>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button class="tab active" data-tab="today" data-i18n="tab_today" role="tab">Today</button>
+  <button class="tab" data-tab="foods" data-i18n="tab_foods" role="tab">Foods</button>
+  <button class="tab" data-tab="history" data-i18n="tab_history" role="tab">History</button>
+  <button class="tab" data-tab="data" data-i18n="tab_data" role="tab">Data</button>
+</nav>
+
+<main>
+  <!-- TODAY -->
+  <section id="panel-today" class="panel active">
+    <div class="row">
+      <label class="field"><span data-i18n="date_label">Date</span>
+        <input type="date" id="datePicker"></label>
+      <label class="field"><span data-i18n="goal_label">Daily goal (kcal)</span>
+        <span class="goal-edit"><input type="number" id="goalInput" min="1000" max="5000" step="1">
+        <button id="goalSave" type="button" data-i18n="save">Save</button></span></label>
+    </div>
+    <p id="goalError" class="error" hidden></p>
+
+    <div class="cards">
+      <div class="card big"><div class="card-label" data-i18n="eaten">Eaten</div><div class="card-value" id="eatenVal">0</div></div>
+      <div class="card big"><div class="card-label" data-i18n="goal">Goal</div><div class="card-value" id="goalVal">2,000</div></div>
+      <div class="card big"><div class="card-label" data-i18n="remaining">Remaining</div><div class="card-value" id="remainVal">2,000</div></div>
+      <div class="card big"><div class="card-label" data-i18n="entries">Entries</div><div class="card-value" id="countVal">0</div></div>
+    </div>
+    <div class="progress"><div id="progressBar" class="progress-bar" style="width:0%"></div></div>
+    <p id="progressText" class="muted"></p>
+
+    <h2 data-i18n="add_entry">Add entry</h2>
+    <form id="addForm" novalidate>
+      <div class="row">
+        <label class="field"><span data-i18n="meal">Meal</span>
+          <select id="mealSel">
+            <option value="breakfast" data-i18n="meal_breakfast">Breakfast</option>
+            <option value="lunch" data-i18n="meal_lunch">Lunch</option>
+            <option value="dinner" data-i18n="meal_dinner">Dinner</option>
+            <option value="snack" data-i18n="meal_snack">Snack</option>
+          </select></label>
+        <label class="field"><span data-i18n="food_db">From food database</span>
+          <select id="foodSel"><option value="" data-i18n="custom">Custom&#8230;</option></select></label>
+      </div>
+      <div class="row">
+        <label class="field wide"><span data-i18n="food_name">Food name</span>
+          <input type="text" id="foodName" maxlength="80" placeholder="e.g. Plain Rice"></label>
+        <label class="field"><span data-i18n="qty">Servings</span>
+          <input type="number" id="qtyInput" min="0.25" max="20" step="0.25" value="1"></label>
+      </div>
+      <div class="row">
+        <label class="field"><span data-i18n="kcal_serv">kcal / serving</span>
+          <input type="number" id="kcalInput" min="0" max="2000" step="1"></label>
+        <label class="field"><span data-i18n="protein_serv">Protein (g) / serving</span>
+          <input type="number" id="proteinInput" min="0" max="500" step="0.1"></label>
+        <label class="field"><span data-i18n="carbs_serv">Carbs (g) / serving</span>
+          <input type="number" id="carbsInput" min="0" max="500" step="0.1"></label>
+        <label class="field"><span data-i18n="fat_serv">Fat (g) / serving</span>
+          <input type="number" id="fatInput" min="0" max="500" step="0.1"></label>
+      </div>
+      <p id="formError" class="error" hidden></p>
+      <button id="addBtn" type="submit" data-i18n="add_entry_btn">Add entry</button>
+    </form>
+
+    <h2 data-i18n="meals_today">Meals today</h2>
+    <div id="mealBreakdown" class="meal-grid"></div>
+
+    <h2 data-i18n="macros">Macros</h2>
+    <div class="macro-bar"><div id="macroP" class="macro-seg protein"></div><div id="macroC" class="macro-seg carbs"></div><div id="macroF" class="macro-seg fat"></div></div>
+    <p id="macroText" class="muted"></p>
+
+    <h2 data-i18n="entries_today">Entries today</h2>
+    <div id="entriesList"></div>
+    <p id="entriesEmpty" class="muted" data-i18n="no_entries">No entries yet for this day.</p>
+
+    <h2 data-i18n="last7">Last 7 days</h2>
+    <div id="chartWrap"><svg id="chartSvg" viewBox="0 0 700 220" role="img" aria-label="7-day calorie chart"></svg></div>
+  </section>
+
+  <!-- FOODS -->
+  <section id="panel-foods" class="panel">
+    <h2 data-i18n="food_db_title">Food database</h2>
+    <p class="muted" data-i18n="food_db_note">Approximate values per serving, for personal tracking only.</p>
+    <label class="field"><span data-i18n="search">Search</span>
+      <input type="search" id="foodSearch" placeholder="e.g. rice / &#2477;&#2494;&#2468;"></label>
+    <div class="table-scroll"><table class="table">
+      <thead><tr><th data-i18n="th_food">Food</th><th data-i18n="th_serving">Serving</th><th>kcal</th><th data-i18n="th_protein">Protein</th><th data-i18n="th_carbs">Carbs</th><th data-i18n="th_fat">Fat</th><th></th></tr></thead>
+      <tbody id="foodTable"></tbody>
+    </table></div>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="panel-history" class="panel">
+    <h2 data-i18n="history_title">Last 30 days</h2>
+    <div class="table-scroll"><table class="table">
+      <thead><tr><th data-i18n="th_date">Date</th><th>kcal</th><th data-i18n="th_entries">Entries</th><th data-i18n="th_goal">Goal</th><th data-i18n="th_status">Status</th></tr></thead>
+      <tbody id="historyTable"></tbody>
+    </table></div>
+  </section>
+
+  <!-- DATA -->
+  <section id="panel-data" class="panel">
+    <h2 data-i18n="data_title">Export / Import / Erase</h2>
+    <button id="exportBtn" type="button" data-i18n="export">Export JSON</button>
+    <label class="field"><span data-i18n="import">Import JSON</span>
+      <input type="file" id="importFile" accept=".json,application/json"></label>
+    <p id="importMsg" class="muted"></p>
+    <h3 data-i18n="erase">Erase all data</h3>
+    <p class="muted" data-i18n="erase_hint">Type DELETE to confirm.</p>
+    <div class="row">
+      <input type="text" id="eraseInput" placeholder="DELETE" class="field">
+      <button id="eraseBtn" type="button" class="danger" data-i18n="erase_btn">Erase everything</button>
+    </div>
+    <p id="eraseMsg" class="muted"></p>
+  </section>
+</main>
+
+<footer class="footer">
+  <p data-i18n="footer_disclaimer">Personal tracker. Food values are approximate estimates, not medical or nutrition advice. Everything stays in your browser.</p>
+</footer>
+
+<script src="js/foods.js"></script>
+<script src="js/logic.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
